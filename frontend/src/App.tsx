@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AppContext, type AppContextValue, type Screen } from './app/AppContext';
+import { AppContext, type AppContextValue } from './app/AppContext';
 import { TabBar } from './components/TabBar';
 import { ItemSheetContainer } from './features/ItemSheet';
 import { TripSheetContainer } from './features/TripSheet';
@@ -8,6 +8,8 @@ import { useItinerary } from './hooks/useItinerary';
 import { useNow } from './hooks/useNow';
 import { useSession } from './hooks/useSession';
 import { useSheet } from './hooks/useSheet';
+import { usePageRoute } from './hooks/usePageRoute';
+import { dayPath, loginDestination } from './lib/routes';
 import { computeHeadline, headlineTarget } from './lib/headline';
 import { color, font } from './lib/theme';
 import { DayContainer } from './pages/Day';
@@ -21,16 +23,34 @@ export function App() {
   const sheet = useSheet();
   const { days, items, loaded, loadError } = itinerary;
 
-  const [screen, setScreen] = useState<Screen>('overview');
-  const [dayIdx, setDayIdx] = useState(0);
+  const { route, pathname, search, navigate } = usePageRoute();
+  const screen = route.page === 'day' ? 'day' : 'overview';
+  const routeDayId = route.page === 'day' ? route.dayId : null;
+  const dayIdx = days.findIndex((day) => day.id === routeDayId);
+  const [lastDayId, setLastDayId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [lastName, setLastName] = useState(session?.name ?? '');
 
-  // 日が減ったら dayIdx を範囲内に収める
   useEffect(() => {
-    if (days.length && dayIdx > days.length - 1) setDayIdx(days.length - 1);
-  }, [days.length, dayIdx]);
+    if (!session && route.page !== 'login') {
+      const next = route.page === 'day' ? `?next=${encodeURIComponent(dayPath(route.dayId))}` : '';
+      navigate(`/login${next}`, true);
+    } else if (session && route.page === 'login') {
+      navigate(loginDestination(search), true);
+    }
+  }, [session, route.page, routeDayId, search, navigate]);
+
+  useEffect(() => {
+    if (routeDayId && dayIdx >= 0) setLastDayId(routeDayId);
+  }, [routeDayId, dayIdx]);
+
+  useEffect(() => {
+    setExpandedId(null);
+    setConfirmId(null);
+    sheet.close();
+    window.scrollTo(0, 0);
+  }, [pathname, sheet.close]);
 
   // ---- 一覧上部の見出し。出発前は出発までの日数、旅の最中は次の予定までのカウントダウン。30 秒ごとに再計算
   const now = useNow(30000);
@@ -38,35 +58,27 @@ export function App() {
   const count = useCountUp(headlineTarget(headline), !!session && loaded);
 
   // ---- 画面遷移
-  const goOverview = useCallback(() => {
-    setScreen('overview');
-    setExpandedId(null);
-    window.scrollTo(0, 0);
-  }, []);
+  const goOverview = useCallback(() => navigate('/'), [navigate]);
   const goDay = useCallback(() => {
-    setScreen('day');
-    setExpandedId(null);
-    window.scrollTo(0, 0);
-  }, []);
+    const day = days.find((d) => d.id === lastDayId) ?? days[0];
+    if (day) navigate(dayPath(day.id));
+  }, [days, lastDayId, navigate]);
   const openDay = useCallback((i: number) => {
-    setScreen('day');
-    setDayIdx(i);
-    window.scrollTo(0, 0);
-  }, []);
-  const selectDay = useCallback((i: number) => {
-    setDayIdx(i);
-    setExpandedId(null);
-  }, []);
+    const day = days[i];
+    if (day) navigate(dayPath(day.id));
+  }, [days, navigate]);
+  const selectDay = openDay;
 
   const doLogout = useCallback(() => {
     logout();
-    setScreen('overview');
-  }, [logout]);
+    sheet.close();
+    navigate('/login', true);
+  }, [logout, sheet.close, navigate]);
 
   const onEntered = useCallback(() => {
     commit();
-    setScreen('overview');
-  }, [commit]);
+    navigate(loginDestination(search), true);
+  }, [commit, search, navigate]);
 
   useEffect(() => {
     if (session) setLastName(session.name);
@@ -85,8 +97,9 @@ export function App() {
     [itinerary, sheet, session, doLogout, screen, dayIdx, goOverview, goDay, openDay, selectDay, expandedId, confirmId, headline, count],
   );
 
-  const curDayId = screen === 'day' ? days[Math.min(dayIdx, days.length - 1)]?.id : undefined;
-  const isApp = !!session && !!itinerary.trip;
+  const curDayId = screen === 'day' ? days[dayIdx]?.id : undefined;
+  const isApp = !!session && !!itinerary.trip && route.page !== 'login';
+  const missingPage = route.page === 'not-found' || (route.page === 'day' && loaded && !loadError && dayIdx < 0);
 
   return (
     <AppContext.Provider value={ctx}>
@@ -101,10 +114,17 @@ export function App() {
             </div>
           )}
 
-          {isApp && screen === 'overview' && <OverviewContainer />}
-          {isApp && screen === 'day' && <DayContainer />}
+          {isApp && !missingPage && screen === 'overview' && <OverviewContainer />}
+          {isApp && !missingPage && screen === 'day' && <DayContainer />}
 
-          {isApp && (
+          {session && missingPage && (
+            <div style={{ padding: '80px 28px' }}>
+              <p>このページは見つかりませんでした。日程が削除された可能性があります。</p>
+              <button onClick={goOverview} style={{ color: color.sea, cursor: 'pointer' }}>一覧に戻る</button>
+            </div>
+          )}
+
+          {isApp && !missingPage && (
             <TabBar
               active={screen}
               onOverview={goOverview}
@@ -116,8 +136,8 @@ export function App() {
             />
           )}
 
-          {sheet.sheet && sheet.sheet.mode !== 'trip' && <ItemSheetContainer state={sheet.sheet} />}
-          {sheet.sheet && sheet.sheet.mode === 'trip' && <TripSheetContainer state={sheet.sheet} />}
+          {session && sheet.sheet && sheet.sheet.mode !== 'trip' && <ItemSheetContainer state={sheet.sheet} />}
+          {session && sheet.sheet && sheet.sheet.mode === 'trip' && <TripSheetContainer state={sheet.sheet} />}
         </div>
       </div>
     </AppContext.Provider>

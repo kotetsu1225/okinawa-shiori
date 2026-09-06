@@ -42,6 +42,17 @@ pnpm build      # dist/ に静的ファイルを出力。API のオリジンは 
 ログイン画面の「記念日」は [frontend/src/config.ts](frontend/src/config.ts) の `ANNIVERSARY`(`2026-06-24`)。
 判定はフロントだけで行い、backend に認証は無い(B10)。セッションは sessionStorage に持つ。
 
+### ページの URL
+
+- `/login` — ログイン
+- `/` — 旅程一覧
+- `/days/:id` — 日付ごとの旅程。`:id` は API が返す `Day.id`（ULID）
+
+日付の URL を未ログインで開くと `/login?next=...` に移り、ログイン後に元の日付へ戻る。
+ブラウザの戻る・進む、再読み込みに対応。存在しない・削除済みの日付には一覧へ戻る案内を表示する。
+Vercel の直接アクセス用 rewrite は `frontend/vercel.json` に定義する。
+ルート解析のテストは Node.js 22.18 以降で `node --test frontend/tests/routes.test.mjs`。
+
 ### 構成(container / presentational)
 
 [Container/Presentational パターン](https://zenn.dev/buyselltech/articles/9460c75b7cd8d1)の「分割パターン」で、

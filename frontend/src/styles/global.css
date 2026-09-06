@@ -101,3 +101,48 @@ textarea::placeholder {
     transform: scale(1);
   }
 }
+
+/* Date inputs do not support placeholder. Keep a real label and an empty-state
+   hint, without covering the native picker or keyboard-editable date segments. */
+.anniversary-field {
+  position: relative;
+}
+.anniversary-field input {
+  display: inline-block;
+  vertical-align: middle;
+  min-width: 0;
+  /* 52px control minus its two 1.5px borders. iOS does not vertically
+     center the native date text when it inherits the normal text line-height. */
+  line-height: 49px;
+}
+.anniversary-field input::-webkit-date-and-time-value {
+  min-height: 49px;
+  line-height: 49px;
+  text-align: left;
+  margin: 0;
+}
+.anniversary-field input::-webkit-datetime-edit {
+  padding-block: 0;
+}
+.anniversary-hint {
+  position: absolute;
+  left: 19px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7f97a3;
+  pointer-events: none;
+  font-size: 16px;
+}
+.anniversary-field[data-empty="true"] input:not(:focus) {
+  color: transparent !important;
+}
+.anniversary-field[data-empty="true"] input:not(:focus)::-webkit-datetime-edit {
+  color: transparent;
+}
+.anniversary-field:focus-within .anniversary-hint {
+  display: none;
+}
+.anniversary-field input:focus-visible {
+  outline: 2px solid #1e86b4;
+  outline-offset: 2px;
+}

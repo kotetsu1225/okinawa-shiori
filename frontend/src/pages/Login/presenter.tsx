@@ -78,12 +78,21 @@ export function LoginPage(p: LoginPageProps) {
           <p style={{ margin: '0 0 28px', color: color.sub }}>名前と、ふたりの記念日を入れてね。</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <input value={p.name} onChange={p.onNameChange} placeholder="あなたの名前" style={inputStyle} />
-            <input
-              type="date"
-              value={p.anniversary}
-              onChange={p.onAnniversaryChange}
-              style={{ ...inputStyle, color: color.ink, WebkitAppearance: 'none', appearance: 'none' }}
-            />
+            <div>
+              <label htmlFor="login-anniversary" style={{ display: 'block', margin: '0 0 6px 4px', color: color.sub, fontSize: 13, fontWeight: 500 }}>
+                ふたりの記念日
+              </label>
+              <div className="anniversary-field" data-empty={!p.anniversary}>
+                <input
+                  id="login-anniversary"
+                  type="date"
+                  value={p.anniversary}
+                  onChange={p.onAnniversaryChange}
+                  style={{ ...inputStyle, color: color.ink, WebkitAppearance: 'none', appearance: 'none' }}
+                />
+                {!p.anniversary && <span className="anniversary-hint" aria-hidden="true">記念日を選んでね</span>}
+              </div>
+            </div>
             <button onClick={p.onSubmit} style={buttonStyle}>
               {p.busy ? '確認中…' : 'しおりを開く'}
             </button>
