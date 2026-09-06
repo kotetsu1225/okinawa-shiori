@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#E6F0F5;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+a{color:#1E86B4}a:hover{color:#166a90}
+input,button,textarea{font:inherit;color:inherit}
+input::placeholder,textarea::placeholder{color:#9AB0BC}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes sunDrift{0%,100%{transform:translate(0,0)}50%{transform:translate(-6px,8px)}}
+@keyframes leave{to{opacity:0;transform:translateY(-30px) scale(.98)}}
+@keyframes waveMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+</style>
+</helmet>
+<div style="min-height:100dvh;display:flex;justify-content:center;font-family:'Zen Kaku Gothic New',sans-serif;color:#1B2A33;font-size:15px;line-height:1.5">
+<div ref="{{ rootRef }}" style="width:100%;max-width:430px;min-height:100dvh;background:#F6FAFC;position:relative;overflow-x:clip">
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ false }}">
+<div style="{{ loginWrapStyle }}">
+<div style="min-height:100dvh;padding:0 28px 48px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,#CFEAF4 0%,#E9F5F9 45%,#F6FAFC 100%);position:relative;overflow:hidden">
+  <div style="position:absolute;top:70px;right:36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#FFE08A,#F5C451);box-shadow:0 20px 50px rgba(245,196,81,.35);animation:sunDrift 9s ease-in-out infinite"></div>
+  <div style="position:absolute;top:44px;left:26px;width:76px;height:76px;animation:sunDrift 11s ease-in-out infinite reverse">
+    <div style="position:absolute;left:20px;top:0;width:36px;height:36px;border-radius:50%;background:#F27A5E"></div>
+    <div style="position:absolute;left:40px;top:14px;width:36px;height:36px;border-radius:50%;background:#F27A5E"></div>
+    <div style="position:absolute;left:32px;top:38px;width:36px;height:36px;border-radius:50%;background:#F27A5E"></div>
+    <div style="position:absolute;left:8px;top:38px;width:36px;height:36px;border-radius:50%;background:#F27A5E"></div>
+    <div style="position:absolute;left:0;top:14px;width:36px;height:36px;border-radius:50%;background:#F27A5E"></div>
+    <div style="position:absolute;left:28px;top:24px;width:20px;height:20px;border-radius:50%;background:#FFE08A"></div>
+  </div>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:150px;overflow:hidden;pointer-events:none">
+    <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="position:absolute;bottom:60px;left:0;width:200%;height:70px;animation:waveMove 14s linear infinite;opacity:.55"><path d="M0 30 C150 60 150 0 300 30 C450 60 450 0 600 30 C750 60 750 0 900 30 C1050 60 1050 0 1200 30 V60 H0 Z" fill="#8FCBE0"></path></svg>
+    <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="position:absolute;bottom:0;left:0;width:200%;height:110px;animation:waveMove 9s linear infinite reverse"><path d="M0 30 C150 60 150 0 300 30 C450 60 450 0 600 30 C750 60 750 0 900 30 C1050 60 1050 0 1200 30 V60 H0 Z" fill="#BFE3EE"></path></svg>
+  </div>
+  <div style="position:relative;animation:rise .7s cubic-bezier(.2,.8,.2,1) both">
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:12px;letter-spacing:.22em;color:#1E86B4;font-weight:700">OKINAWA · TWO OF US</div>
+    <h1 style="font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:38px;line-height:1.2;margin:8px 0 6px">ふたりの<br>沖縄のしおり</h1>
+    <p style="margin:0 0 28px;color:#5A7280">名前と、ふたりの記念日を入れてね。</p>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <input value="{{ name }}" onChange="{{ onName }}" placeholder="あなたの名前" style="width:100%;height:52px;border-radius:16px;border:1.5px solid #D5E5EC;background:#fff;padding:0 18px;outline:none;font-size:16px">
+      <input type="date" value="{{ anniv }}" onChange="{{ onAnniv }}" style="width:100%;height:52px;border-radius:16px;border:1.5px solid #D5E5EC;background:#fff;padding:0 18px;outline:none;font-size:16px;color:#1B2A33;-webkit-appearance:none;appearance:none">
+      <button onClick="{{ submitLogin }}" style="{{ loginBtnStyle }}">{{ loginBtnLabel }}</button>
+    </div>
+    <div style="height:22px;margin-top:10px;font-size:13px;color:#E0573B;font-weight:500">{{ loginErrText }}</div>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+<div style="padding-bottom:120px">
+  <div style="position:relative;padding:56px 22px 54px;background:linear-gradient(170deg,#CFEAF4 0%,#E4F3F8 100%);overflow:hidden">
+    <div style="position:absolute;left:0;right:0;bottom:0;height:44px;overflow:hidden;pointer-events:none">
+      <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="position:absolute;bottom:10px;left:0;width:200%;height:34px;animation:waveMove 16s linear infinite;opacity:.45"><path d="M0 30 C150 60 150 0 300 30 C450 60 450 0 600 30 C750 60 750 0 900 30 C1050 60 1050 0 1200 30 V60 H0 Z" fill="#8FCBE0"></path></svg>
+      <svg viewBox="0 0 1200 60" preserveAspectRatio="none" style="position:absolute;bottom:-1px;left:0;width:200%;height:32px;animation:waveMove 11s linear infinite reverse"><path d="M0 30 C150 60 150 0 300 30 C450 60 450 0 600 30 C750 60 750 0 900 30 C1050 60 1050 0 1200 30 V60 H0 Z" fill="#F6FAFC"></path></svg>
+    </div>
+    <div style="position:absolute;top:44px;right:26px;width:92px;height:92px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#FFE08A,#F5C451);box-shadow:0 14px 34px rgba(245,196,81,.35);animation:sunDrift 9s ease-in-out infinite"></div>
+    <div style="position:absolute;top:118px;right:104px;width:44px;height:44px;animation:sunDrift 11s ease-in-out infinite reverse">
+      <div style="position:absolute;left:12px;top:0;width:20px;height:20px;border-radius:50%;background:#F27A5E"></div>
+      <div style="position:absolute;left:24px;top:8px;width:20px;height:20px;border-radius:50%;background:#F27A5E"></div>
+      <div style="position:absolute;left:19px;top:22px;width:20px;height:20px;border-radius:50%;background:#F27A5E"></div>
+      <div style="position:absolute;left:5px;top:22px;width:20px;height:20px;border-radius:50%;background:#F27A5E"></div>
+      <div style="position:absolute;left:0;top:8px;width:20px;height:20px;border-radius:50%;background:#F27A5E"></div>
+      <div style="position:absolute;left:16px;top:14px;width:12px;height:12px;border-radius:50%;background:#FFE08A"></div>
+    </div>
+
+    <button onClick="{{ openTripSheet }}" style="position:absolute;top:14px;right:16px;height:34px;padding:0 14px;border-radius:999px;border:0;background:rgba(255,255,255,.75);color:#1E86B4;font-size:12px;font-weight:700;cursor:pointer">旅の設定</button>
+    <button onClick="{{ doLogout }}" style="position:absolute;top:14px;left:16px;height:34px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:#7F97A3;font-size:12px;cursor:pointer">{{ greeting }}</button>
+    <div style="font-family:'Bricolage Grotesque',sans-serif;font-size:12px;letter-spacing:.22em;color:#1E86B4;font-weight:700;animation:rise .5s both">{{ dateRange }}</div>
+    <h1 style="font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:34px;line-height:1.2;margin:8px 0 22px;animation:rise .5s .05s backwards">{{ tripTitle }}</h1>
+
+    <div style="display:flex;align-items:flex-end;gap:10px;animation:rise .5s .1s backwards">
+      <div style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:64px;line-height:1;color:#1E86B4;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ countText }}</div>
+      <div style="padding-bottom:8px;color:#5A7280;font-weight:500">{{ countLabel }}</div>
+    </div>
+  </div>
+
+  <div style="padding:6px 16px 0">
+  <sc-for list="{{ days }}" as="day" hint-placeholder-count="2">
+    <div data-row="header" data-day="{{ day.id }}" style="margin:22px 0 10px">
+    <div style="{{ day.rowStyle }}">
+      <button onClick="{{ day.open }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:6px 4px;border:0;background:transparent;text-align:left;cursor:pointer">
+        <span style="{{ day.badgeStyle }}">{{ day.n }}</span>
+        <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:16px;color:#1B2A33">{{ day.dateText }}</span>
+        <span style="color:#5A7280;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ day.title }}</span>
+        <span style="color:#9AB0BC;font-size:18px">›</span>
+      </button>
+    </div>
+    </div>
+    <sc-for list="{{ day.items }}" as="item" hint-placeholder-count="2">
+      <div data-row="card" data-id="{{ item.id }}" style="margin-bottom:10px">
+      <div style="{{ item.wrapStyle }}">
+        <div style="background:#fff;border-radius:22px;border:1.5px solid #E1ECF1;overflow:hidden;box-shadow:0 2px 0 #E1ECF1">
+          <div style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;padding:12px 4px 12px 12px">
+            <button onClick="{{ item.toggle }}" aria-label="完了" style="{{ item.checkStyle }}">✓</button>
+            <div onClick="{{ item.expand }}" style="min-width:0;padding:4px 6px;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="{{ item.dotStyle }}"></span><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:13px;color:#5A7280;letter-spacing:.04em">{{ item.timeText }}</span></div>
+              <div style="{{ item.titleStyle }}">{{ item.title }}</div>
+            </div>
+            <div onPointerDown="{{ item.onHandleDown }}" style="touch-action:none;cursor:grab;padding:14px 14px;display:flex;flex-direction:column;gap:4px;user-select:none">
+              <div style="width:18px;height:2px;border-radius:2px;background:#C3D5DE"></div>
+              <div style="width:18px;height:2px;border-radius:2px;background:#C3D5DE"></div>
+              <div style="width:18px;height:2px;border-radius:2px;background:#C3D5DE"></div>
+            </div>
+          </div>
+          <div style="{{ item.expStyle }}">
+            <div style="min-height:0;overflow:hidden">
+              <div style="padding:0 16px 14px 56px;display:flex;flex-direction:column;gap:10px">
+                <sc-if value="{{ item.hasDesc }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:#4A6270;font-size:14px;white-space:pre-wrap">{{ item.desc }}</p></sc-if>
+                <sc-if value="{{ item.hasUrl }}" hint-placeholder-val="{{ false }}"><a href="{{ item.url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#1E86B4;text-decoration:none;background:#EAF5FA;border-radius:999px;padding:6px 12px;width:fit-content;max-width:100%"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.urlText }}</span><span>↗</span></a></sc-if>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:2px">
+                  <button onClick="{{ item.edit }}" style="height:34px;padding:0 14px;border-radius:999px;border:1.5px solid #D5E5EC;background:#fff;font-size:13px;font-weight:700;color:#1B2A33;cursor:pointer">編集</button>
+                  <sc-if value="{{ item.confirming }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:13px;color:#E0573B;margin-left:4px">消す？</span>
+                    <button onClick="{{ item.remove }}" style="height:34px;padding:0 14px;border-radius:999px;border:0;background:#E0573B;color:#fff;font-size:13px;font-weight:700;cursor:pointer">はい</button>
+                    <button onClick="{{ item.cancelRemove }}" style="height:34px;padding:0 12px;border-radius:999px;border:0;background:transparent;color:#5A7280;font-size:13px;cursor:pointer">やめる</button>
+                  </sc-if>
+                  <sc-if value="{{ item.notConfirming }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ item.askRemove }}" style="height:34px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:#9AB0BC;font-size:13px;cursor:pointer">削除</button>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ day.empty }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ day.add }}" style="width:100%;border:1.5px dashed #C9DDE6;border-radius:20px;background:transparent;padding:18px;color:#7F97A3;font-size:14px;cursor:pointer">この日の予定を追加</button>
+    </sc-if>
+  </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isDay }}" hint-placeholder-val="{{ false }}">
+<div style="padding-bottom:120px">
+  <div style="position:sticky;top:0;z-index:5;background:rgba(246,250,252,.92);backdrop-filter:blur(10px);padding:14px 0 10px">
+    <div style="display:flex;gap:8px;overflow-x:auto;padding:0 16px;scrollbar-width:none">
+      <sc-for list="{{ days }}" as="day" hint-placeholder-count="3">
+        <button onClick="{{ day.select }}" style="{{ day.pillStyle }}">DAY {{ day.n }}</button>
+      </sc-for>
+    </div>
+  </div>
+  <div style="padding:14px 22px 6px;animation:rise .4s both">
+    <div style="display:flex;align-items:center;gap:10px"><span style="{{ cur.badgeStyle }}">{{ cur.n }}</span><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;color:#1B2A33">{{ cur.dateText }}</span></div>
+    <h2 style="font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:28px;line-height:1.25;margin:6px 0 4px">{{ cur.title }}</h2>
+    <div style="color:#7F97A3;font-size:13px">{{ cur.countText }}</div>
+  </div>
+  <div style="padding:10px 16px 0">
+    <sc-for list="{{ cur.items }}" as="item" hint-placeholder-count="3">
+      <div data-row="card" data-id="{{ item.id }}" style="margin-bottom:10px">
+      <div style="{{ item.wrapStyle }}">
+        <div style="background:#fff;border-radius:22px;border:1.5px solid #E1ECF1;overflow:hidden;box-shadow:0 2px 0 #E1ECF1">
+          <div style="display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:6px;padding:12px 4px 12px 12px">
+            <button onClick="{{ item.toggle }}" aria-label="完了" style="{{ item.checkStyle }}">✓</button>
+            <div onClick="{{ item.expand }}" style="min-width:0;padding:4px 6px;cursor:pointer">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="{{ item.dotStyle }}"></span><span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:13px;color:#5A7280;letter-spacing:.04em">{{ item.timeText }}</span></div>
+              <div style="{{ item.titleStyle }}">{{ item.title }}</div>
+            </div>
+            <div onPointerDown="{{ item.onHandleDown }}" style="touch-action:none;cursor:grab;padding:14px 14px;display:flex;flex-direction:column;gap:4px;user-select:none">
+              <div style="width:18px;height:2px;border-radius:2px;background:#C3D5DE"></div>
+              <div style="width:18px;height:2px;border-radius:2px;background:#C3D5DE"></div>
+              <div style="width:18px;height:2px;border-radius:2px;background:#C3D5DE"></div>
+            </div>
+          </div>
+          <div style="{{ item.expStyle }}">
+            <div style="min-height:0;overflow:hidden">
+              <div style="padding:0 16px 14px 56px;display:flex;flex-direction:column;gap:10px">
+                <sc-if value="{{ item.hasDesc }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:#4A6270;font-size:14px;white-space:pre-wrap">{{ item.desc }}</p></sc-if>
+                <sc-if value="{{ item.hasUrl }}" hint-placeholder-val="{{ false }}"><a href="{{ item.url }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#1E86B4;text-decoration:none;background:#EAF5FA;border-radius:999px;padding:6px 12px;width:fit-content;max-width:100%"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.urlText }}</span><span>↗</span></a></sc-if>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:2px">
+                  <button onClick="{{ item.edit }}" style="height:34px;padding:0 14px;border-radius:999px;border:1.5px solid #D5E5EC;background:#fff;font-size:13px;font-weight:700;color:#1B2A33;cursor:pointer">編集</button>
+                  <sc-if value="{{ item.confirming }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:13px;color:#E0573B;margin-left:4px">消す？</span>
+                    <button onClick="{{ item.remove }}" style="height:34px;padding:0 14px;border-radius:999px;border:0;background:#E0573B;color:#fff;font-size:13px;font-weight:700;cursor:pointer">はい</button>
+                    <button onClick="{{ item.cancelRemove }}" style="height:34px;padding:0 12px;border-radius:999px;border:0;background:transparent;color:#5A7280;font-size:13px;cursor:pointer">やめる</button>
+                  </sc-if>
+                  <sc-if value="{{ item.notConfirming }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ item.askRemove }}" style="height:34px;padding:0 14px;border-radius:999px;border:0;background:transparent;color:#9AB0BC;font-size:13px;cursor:pointer">削除</button>
+                  </sc-if>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ cur.empty }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ cur.add }}" style="width:100%;border:1.5px dashed #C9DDE6;border-radius:20px;background:transparent;padding:26px;color:#7F97A3;font-size:14px;cursor:pointer">まだ予定がありません。追加する</button>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;padding:0 16px calc(14px + env(safe-area-inset-bottom));z-index:20;pointer-events:none">
+  <div style="pointer-events:auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border:1px solid #E1ECF1;border-radius:999px;padding:6px;box-shadow:0 10px 30px rgba(20,60,80,.12)">
+    <button onClick="{{ goOverview }}" style="{{ tabOverviewStyle }}">一覧</button>
+    <button onClick="{{ openAddSheet }}" aria-label="予定を追加" style="width:54px;height:54px;border-radius:50%;border:0;background:#F27A5E;color:#fff;font-size:28px;line-height:1;cursor:pointer;box-shadow:0 8px 20px rgba(242,122,94,.4);display:grid;place-items:center;padding-bottom:3px">+</button>
+    <button onClick="{{ goDay }}" style="{{ tabDayStyle }}">日程</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isSheet }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeSheet }}" style="position:fixed;inset:0;background:rgba(20,45,60,.35);z-index:30;animation:fadeIn .25s both"></div>
+<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:31">
+<div style="max-height:92dvh;overflow-y:auto;background:#F6FAFC;border-radius:28px 28px 0 0;padding:14px 22px calc(24px + env(safe-area-inset-bottom));animation:slideUp .35s cubic-bezier(.2,.8,.2,1) both">
+  <div style="width:40px;height:4px;border-radius:2px;background:#D5E5EC;margin:0 auto 14px"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <h3 style="font-family:'Zen Maru Gothic',sans-serif;font-weight:700;font-size:20px;margin:0">{{ sheetTitle }}</h3>
+    <button onClick="{{ closeSheet }}" style="border:0;background:transparent;color:#7F97A3;font-size:14px;cursor:pointer;padding:6px">閉じる</button>
+  </div>
+
+  <sc-if value="{{ sheetIsItem }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">
+        <sc-for list="{{ sheetDays }}" as="d" hint-placeholder-count="3"><button onClick="{{ d.pick }}" style="{{ d.style }}">DAY {{ d.n }}</button></sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:10px">
+        <input type="time" value="{{ sheet.time }}" onChange="{{ sfTime }}" style="height:50px;border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:0 14px;outline:none;font-size:16px;-webkit-appearance:none;appearance:none">
+        <input value="{{ sheet.title }}" onChange="{{ sfTitle }}" placeholder="タイトル" style="height:50px;border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:0 16px;outline:none;font-size:16px;min-width:0">
+      </div>
+      <textarea value="{{ sheet.desc }}" onChange="{{ sfDesc }}" placeholder="メモ・説明" rows="3" style="border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:12px 16px;outline:none;font-size:15px;resize:none"></textarea>
+      <input value="{{ sheet.url }}" onChange="{{ sfUrl }}" placeholder="リンク (https://...)" inputMode="url" style="height:50px;border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:0 16px;outline:none;font-size:16px">
+      <button onClick="{{ saveSheet }}" style="{{ saveBtnStyle }}">{{ saveLabel }}</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ sheetIsTrip }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <input value="{{ sheet.title }}" onChange="{{ sfTitle }}" placeholder="旅のタイトル" style="height:50px;border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:0 16px;outline:none;font-size:16px">
+      <label style="font-size:12px;color:#7F97A3;font-weight:700;margin:4px 0 -6px">出発日</label>
+      <input type="date" value="{{ sheet.start }}" onChange="{{ sfStart }}" style="height:50px;border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:0 16px;outline:none;font-size:16px;-webkit-appearance:none;appearance:none">
+      <label style="font-size:12px;color:#7F97A3;font-weight:700;margin:4px 0 -6px">日ごとのテーマ</label>
+      <sc-for list="{{ sheetDayFields }}" as="f" hint-placeholder-count="3">
+        <div style="display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center">
+          <span style="font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:12px;color:#1E86B4;width:44px">DAY {{ f.n }}</span>
+          <input value="{{ f.value }}" onChange="{{ f.onChange }}" placeholder="例: 那覇" style="height:46px;border-radius:14px;border:1.5px solid #D5E5EC;background:#fff;padding:0 14px;outline:none;font-size:15px;min-width:0">
+          <button onClick="{{ f.remove }}" style="{{ f.removeStyle }}">×</button>
+        </div>
+      </sc-for>
+      <button onClick="{{ addDay }}" style="height:44px;border-radius:14px;border:1.5px dashed #C9DDE6;background:transparent;color:#7F97A3;font-size:14px;cursor:pointer">日を追加</button>
+      <button onClick="{{ saveSheet }}" style="{{ saveBtnStyle }}">保存する</button>
+    </div>
+  </sc-if>
+</div>
+</div>
+</sc-if>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;hideDone&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;表示&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'login', name: '', anniv: '', loginErr: '', busy: false, leaving: false, trip: null, items: [], dayIdx: 0, expandedId: null, confirmId: null, sheet: null, count: null, drag: null };
+  rootRef = React.createRef();
+  api = null; dg = null; raf = 0;
+
+  async componentDidMount() {
+    this.api = await import('./api.js');
+    const [s, trip, items] = await Promise.all([this.api.getSession(), this.api.getTrip(), this.api.listItems()]);
+    this.setState({ trip, items, screen: s ? 'overview' : 'login', name: s ? s.name : '' }, () => { if (s) this.startCount(); });
+  }
+  componentWillUnmount() { this.endDragListeners(); }
+
+  // ---- helpers
+  dayDate(i) { const d = new Date(this.state.trip.start + 'T00:00:00'); d.setDate(d.getDate() + i); return d; }
+  fmtDate(d) { return `${d.getMonth() + 1}/${d.getDate()} (${'日月火水木金土'[d.getDay()]})`; }
+  daysUntil() { const t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((this.dayDate(0) - t) / 86400000); }
+  startCount() {
+    const target = Math.max(0, this.daysUntil()); const t0 = performance.now(); const dur = 1100;
+    const step = (now) => { const p = Math.min(1, (now - t0) / dur); const e = 1 - Math.pow(1 - p, 3); this.setState({ count: Math.round(target * e) }); if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  async refresh() { const items = await this.api.listItems(); this.setState({ items }); }
+  sortedItems(dayId) { return this.state.items.filter((x) => x.dayId === dayId).sort((a, b) => a.order - b.order); }
+
+  // ---- login
+  submitLogin = async () => {
+    if (this.state.busy) return;
+    this.setState({ busy: true, loginErr: '' });
+    try {
+      await this.api.login(this.state.name, this.state.anniv);
+      this.setState({ leaving: true });
+      setTimeout(() => this.setState({ screen: 'overview', leaving: false, busy: false }, () => this.startCount()), 450);
+    } catch (e) { this.setState({ loginErr: e.message || 'ログインできませんでした', busy: false }); setTimeout(() => this.setState({ loginErr: '' }), 2500); }
+  };
+  doLogout = async () => { await this.api.logout(); this.setState({ screen: 'login', anniv: '', count: null }); };
+
+  // ---- sheet
+  openAdd(dayId) { this.setState({ sheet: { mode: 'add', dayId, time: '', title: '', desc: '', url: '' } }); }
+  openEdit(it) { this.setState({ sheet: { mode: 'edit', id: it.id, dayId: it.dayId, time: it.time, title: it.title, desc: it.desc, url: it.url } }); }
+  openTripSheet = () => { const t = this.state.trip; this.setState({ sheet: { mode: 'trip', title: t.title, start: t.start, days: t.days.map((d) => ({ ...d })) } }); };
+  closeSheet = () => this.setState({ sheet: null });
+  sf = (k) => (e) => { const v = e.target.value; this.setState((s) => ({ sheet: { ...s.sheet, [k]: v } })); };
+  saveSheet = async () => {
+    const sh = this.state.sheet; if (!sh) return;
+    if (sh.mode === 'trip') {
+      if (!sh.title.trim() || !sh.start || !sh.days.length) return;
+      const trip = { title: sh.title.trim(), start: sh.start, days: sh.days };
+      await this.api.saveTrip(trip);
+      const keep = new Set(sh.days.map((d) => d.id));
+      const orphan = this.state.items.filter((x) => !keep.has(x.dayId));
+      if (orphan.length) await this.api.reorderItems(orphan.map((x, i) => ({ id: x.id, dayId: sh.days[sh.days.length - 1].id, order: 1000 + i })));
+      this.setState({ trip, sheet: null, dayIdx: Math.min(this.state.dayIdx, sh.days.length - 1) }, () => { this.refresh(); this.startCount(); });
+      return;
+    }
+    if (!sh.title.trim()) return;
+    const data = { dayId: sh.dayId, time: sh.time, title: sh.title.trim(), desc: sh.desc, url: sh.url.trim() };
+    if (sh.mode === 'add') { const n = this.sortedItems(sh.dayId).length; await this.api.createItem({ ...data, order: n }); }
+    else {
+      const prev = this.state.items.find((x) => x.id === sh.id);
+      const order = prev.dayId === sh.dayId ? prev.order : this.sortedItems(sh.dayId).length;
+      await this.api.updateItem(sh.id, { ...data, order });
+    }
+    this.setState({ sheet: null }); this.refresh();
+  };
+
+  // ---- drag & drop (handle)
+  dragStart(e, id) {
+    if (this.dg) return;
+    e.preventDefault();
+    const els = [...this.rootRef.current.querySelectorAll('[data-row]')];
+    const rows = els.map((el) => { const r = el.getBoundingClientRect(); return { kind: el.dataset.row, id: el.dataset.id, day: el.dataset.day, top: r.top + window.scrollY, h: r.height + 10 }; });
+    const di = rows.findIndex((r) => r.id === id); if (di < 0) return;
+    const d = rows[di]; const others = rows.filter((_, i) => i !== di);
+    this.dg = { id, d, others, startY: e.clientY, startScroll: window.scrollY, lastY: e.clientY, slot: this.slotOf(others, d.top + d.h / 2) };
+    this.setState({ drag: { id, dy: 0, slot: this.dg.slot }, expandedId: null, confirmId: null });
+    window.addEventListener('pointermove', this.onMove); window.addEventListener('pointerup', this.onUp); window.addEventListener('pointercancel', this.onUp);
+    this.raf = requestAnimationFrame(this.tick);
+  }
+  slotOf(others, y) { let s = 0; for (const r of others) if (r.top + r.h / 2 < y) s++; return s; }
+  updateDrag() { const g = this.dg; if (!g) return; const dy = g.lastY - g.startY + (window.scrollY - g.startScroll); g.slot = this.slotOf(g.others, g.d.top + g.d.h / 2 + dy); this.setState({ drag: { id: g.id, dy, slot: g.slot } }); }
+  onMove = (e) => { if (!this.dg) return; this.dg.lastY = e.clientY; this.updateDrag(); };
+  tick = () => {
+    const g = this.dg; if (!g) return;
+    const vh = window.innerHeight, y = g.lastY, edge = 100, bottomPad = 90; let v = 0;
+    if (y < edge) v = -((edge - y) / edge) * 16; else if (y > vh - edge - bottomPad) v = ((y - (vh - edge - bottomPad)) / edge) * 16;
+    if (v) { window.scrollBy(0, v); this.updateDrag(); }
+    this.raf = requestAnimationFrame(this.tick);
+  };
+  endDragListeners() { window.removeEventListener('pointermove', this.onMove); window.removeEventListener('pointerup', this.onUp); window.removeEventListener('pointercancel', this.onUp); cancelAnimationFrame(this.raf); }
+  onUp = async () => {
+    const g = this.dg; if (!g) return; this.endDragListeners(); this.dg = null;
+    const seq = [...g.others]; seq.splice(g.slot, 0, g.d);
+    const fallback = this.state.screen === 'day' ? this.state.trip.days[this.state.dayIdx].id : this.state.trip.days[0].id;
+    let day = fallback, n = 0; const changes = [];
+    for (const r of seq) { if (r.kind === 'header') { day = r.day; n = 0; } else { changes.push({ id: r.id, dayId: day, order: n++ }); } }
+    const map = new Map(changes.map((c) => [c.id, c]));
+    const items = this.state.items.map((x) => map.has(x.id) ? { ...x, ...map.get(x.id) } : x);
+    this.setState({ items, drag: null });
+    await this.api.reorderItems(changes);
+  };
+
+  shiftFor(rowId, isHeaderDay) {
+    const g = this.dg, dr = this.state.drag; if (!g || !dr) return 0;
+    const i = g.others.findIndex((r) => (isHeaderDay ? r.kind === 'header' && r.day === rowId : r.id === rowId)); if (i < 0) return 0;
+    const after = g.others[i].top > g.d.top;
+    if (after && i < dr.slot) return -g.d.h; if (!after && i >= dr.slot) return g.d.h; return 0;
+  }
+  rowStyle(rowId, isHeader, idx) {
+    const dr = this.state.drag;
+    if (dr && dr.id === rowId) return { transform: `translateY(${dr.dy}px) scale(1.03)`, position: 'relative', zIndex: 10, transition: 'none', boxShadow: '0 18px 40px rgba(20,60,80,.18)', borderRadius: 20 };
+    const sh = this.shiftFor(rowId, isHeader);
+    if (dr) return { transform: `translateY(${sh}px)`, transition: 'transform .22s cubic-bezier(.2,.8,.2,1)' };
+    return { animation: 'rise .45s cubic-bezier(.2,.8,.2,1) backwards', animationDelay: `${Math.min(idx, 10) * 40}ms` };
+  }
+
+  itemView(it, idx) {
+    const exp = this.state.expandedId === it.id, conf = this.state.confirmId === it.id;
+    let host = ''; try { host = new URL(it.url).host.replace(/^www\./, ''); } catch (e) { host = it.url; }
+    return {
+      id: it.id, title: it.title, desc: it.desc, url: it.url, urlText: host, hasDesc: !!it.desc, hasUrl: !!it.url,
+      timeText: it.time || '時間未定', confirming: conf, notConfirming: !conf,
+      wrapStyle: this.rowStyle(it.id, false, idx),
+      dotStyle: { width: 8, height: 8, borderRadius: '50%', background: '#F27A5E', flex: '0 0 auto' },
+      expStyle: { display: 'grid', gridTemplateRows: exp ? '1fr' : '0fr', transition: 'grid-template-rows .35s cubic-bezier(.2,.8,.2,1)' },
+      titleStyle: { fontFamily: "'Zen Maru Gothic',sans-serif", fontWeight: 700, fontSize: 17, lineHeight: 1.3, color: it.done ? '#9AB0BC' : '#1B2A33', textDecoration: it.done ? 'line-through' : 'none', transition: 'color .25s' },
+      checkStyle: { width: 40, height: 40, borderRadius: '50%', border: it.done ? '0' : '2px dashed #C9DDE6', background: it.done ? '#5BB58A' : '#fff', color: '#fff', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'grid', placeItems: 'center', transition: 'background .25s, border .25s', animation: it.done ? 'pop .35s' : 'none' },
+      toggle: async (e) => { e.stopPropagation(); await this.api.updateItem(it.id, { done: !it.done }); this.refresh(); },
+      expand: () => this.setState((s) => ({ expandedId: s.expandedId === it.id ? null : it.id, confirmId: null })),
+      onHandleDown: (e) => this.dragStart(e, it.id),
+      edit: () => this.openEdit(it),
+      askRemove: () => this.setState({ confirmId: it.id }),
+      cancelRemove: () => this.setState({ confirmId: null }),
+      remove: async () => { await this.api.deleteItem(it.id); this.setState({ confirmId: null, expandedId: null }); this.refresh(); },
+    };
+  }
+
+  renderVals() {
+    const s = this.state, trip = s.trip, sh = s.sheet;
+    const isLogin = s.screen === 'login', isOverview = s.screen === 'overview' && !!trip, isDay = s.screen === 'day' && !!trip;
+    const hideDone = this.props.hideDone ?? false;
+    const pill = (on) => ({ flex: '0 0 auto', height: 36, padding: '0 16px', borderRadius: 999, border: on ? 0 : '1.5px solid #D5E5EC', background: on ? '#1E86B4' : '#fff', color: on ? '#fff' : '#5A7280', fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: '.1em', cursor: 'pointer', transition: 'background .2s' });
+    const tab = (on) => ({ height: 48, border: 0, background: 'transparent', borderRadius: 999, fontFamily: "'Zen Maru Gothic',sans-serif", fontWeight: 700, fontSize: 15, color: on ? '#1E86B4' : '#9AB0BC', cursor: 'pointer', transition: 'color .2s' });
+    let rowIdx = 0;
+    const days = trip ? trip.days.map((d, i) => {
+      const list = this.sortedItems(d.id).filter((x) => !hideDone || !x.done);
+      const items = list.map((it) => this.itemView(it, rowIdx++));
+      const col = ['#1E86B4', '#F27A5E', '#5BB58A', '#F5C451'][i % 4];
+      return { id: d.id, n: i + 1, title: d.title, dateText: this.fmtDate(this.dayDate(i)), items, empty: items.length === 0,
+        badgeStyle: { width: 34, height: 34, borderRadius: '50%', background: col, color: '#fff', display: 'grid', placeItems: 'center', fontFamily: "'Bricolage Grotesque',sans-serif", fontWeight: 700, fontSize: 15, flex: '0 0 auto', boxShadow: `0 3px 0 ${col}55` },
+        rowStyle: this.rowStyle(d.id, true, rowIdx++), open: () => { this.setState({ screen: 'day', dayIdx: i }); window.scrollTo(0, 0); },
+        select: () => this.setState({ dayIdx: i, expandedId: null }), pillStyle: pill(i === s.dayIdx), add: () => this.openAdd(d.id) };
+    }) : [];
+    const cur = days[s.dayIdx] || days[0] || {};
+    if (cur.items) cur.countText = cur.items.length ? `${cur.items.length}件の予定 · ${this.sortedItems(cur.id).filter((x) => x.done).length}件完了` : '';
+    const du = trip ? this.daysUntil() : 0;
+    const last = trip ? this.dayDate(trip.days.length - 1) : null;
+    const ended = last && new Date() > new Date(last.getTime() + 86400000);
+    const countText = trip ? (du > 0 ? String(s.count ?? 0) : ended ? '' : 'Now') : '';
+    const countLabel = trip ? (du > 0 ? '日後に出発' : ended ? 'たのしかったね' : '旅のまっただなか') : '';
+    const sheetDays = (sh && trip) ? trip.days.map((d, i) => ({ n: i + 1, style: pill(d.id === sh.dayId), pick: () => this.setState((st) => ({ sheet: { ...st.sheet, dayId: d.id } })) })) : [];
+    const sheetDayFields = (sh && sh.mode === 'trip') ? sh.days.map((d, i) => ({ n: i + 1, value: d.title,
+      onChange: (e) => { const v = e.target.value; this.setState((st) => { const ds = st.sheet.days.map((x, j) => j === i ? { ...x, title: v } : x); return { sheet: { ...st.sheet, days: ds } }; }); },
+      remove: () => this.setState((st) => ({ sheet: { ...st.sheet, days: st.sheet.days.filter((_, j) => j !== i) } })),
+      removeStyle: { width: 36, height: 36, borderRadius: '50%', border: 0, background: 'transparent', color: '#9AB0BC', fontSize: 18, cursor: 'pointer', visibility: sh.days.length > 1 ? 'visible' : 'hidden' } })) : [];
+    const canSave = sh ? (sh.mode === 'trip' ? !!sh.title?.trim() : !!sh.title?.trim()) : false;
+    return {
+      rootRef: this.rootRef, isLogin, isOverview, isDay, isApp: isOverview || isDay, isSheet: !!sh,
+      name: s.name, anniv: s.anniv, onName: (e) => this.setState({ name: e.target.value }), onAnniv: (e) => this.setState({ anniv: e.target.value }),
+      submitLogin: this.submitLogin, loginErrText: s.loginErr, loginBtnLabel: s.busy ? '確認中…' : 'しおりを開く',
+      loginWrapStyle: { animation: s.leaving ? 'leave .45s ease-in both' : s.loginErr ? 'shake .5s' : 'none' },
+      loginBtnStyle: { height: 54, borderRadius: 16, border: 0, background: s.busy ? '#8FB9CE' : '#1E86B4', color: '#fff', fontFamily: "'Zen Maru Gothic',sans-serif", fontWeight: 700, fontSize: 16, cursor: 'pointer', boxShadow: '0 10px 24px rgba(30,134,180,.3)', transition: 'background .2s, transform .15s', marginTop: 6 },
+      tripTitle: trip?.title || '', greeting: s.name ? `${s.name} · ログアウト` : '', doLogout: this.doLogout,
+      dateRange: trip ? `${this.fmtDate(this.dayDate(0))} — ${this.fmtDate(last)} · ${trip.days.length} DAYS` : '',
+      countText, countLabel, days, cur, openTripSheet: this.openTripSheet,
+      goOverview: () => { this.setState({ screen: 'overview', expandedId: null }); window.scrollTo(0, 0); },
+      goDay: () => { this.setState({ screen: 'day', expandedId: null }); window.scrollTo(0, 0); },
+      openAddSheet: () => this.openAdd((isDay ? cur.id : null) || trip.days[0].id),
+      tabOverviewStyle: tab(isOverview), tabDayStyle: tab(isDay),
+      sheet: sh || {}, sheetIsItem: !!sh && sh.mode !== 'trip', sheetIsTrip: !!sh && sh.mode === 'trip',
+      sheetTitle: sh ? (sh.mode === 'add' ? '予定を追加' : sh.mode === 'edit' ? '予定を編集' : '旅の設定') : '',
+      sheetDays, sheetDayFields, addDay: () => this.setState((st) => ({ sheet: { ...st.sheet, days: [...st.sheet.days, { id: 'd' + Math.random().toString(36).slice(2, 7), title: '' }] } })),
+      sfTime: this.sf('time'), sfTitle: this.sf('title'), sfDesc: this.sf('desc'), sfUrl: this.sf('url'), sfStart: this.sf('start'),
+      saveSheet: this.saveSheet, closeSheet: this.closeSheet, saveLabel: sh?.mode === 'edit' ? '保存する' : '追加する',
+      saveBtnStyle: { height: 54, borderRadius: 16, border: 0, background: canSave ? '#F27A5E' : '#F3C9BE', color: '#fff', fontFamily: "'Zen Maru Gothic',sans-serif", fontWeight: 700, fontSize: 16, cursor: canSave ? 'pointer' : 'default', boxShadow: canSave ? '0 10px 24px rgba(242,122,94,.3)' : 'none', transition: 'background .2s', marginTop: 8 },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-shiori}
+      MYSQL_USER: ${DB_USER:-shiori}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-shiori}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      # -h 127.0.0.1 で TCP を使う。初期化中の一時サーバは TCP を開かないので、初期化完了を正しく待てる
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_ROOT_PASSWORD:-root}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build: .
+    environment:
+      PORT: "8088"
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: ${DB_USER:-shiori}
+      DB_PASSWORD: ${DB_PASSWORD:-shiori}
+      DB_NAME: ${DB_NAME:-shiori}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "${API_PORT:-8088}:8088"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dbdata:
