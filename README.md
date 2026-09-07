@@ -40,7 +40,9 @@ pnpm build      # dist/ に静的ファイルを出力。API のオリジンは 
 ```
 
 ログイン画面の「記念日」は [frontend/src/config.ts](frontend/src/config.ts) の `ANNIVERSARY`(`2026-06-24`)。
-判定はフロントだけで行い、backend に認証は無い(B10)。セッションは sessionStorage に持つ。
+判定はフロントだけで行い、backend に認証は無い(B10)。セッションは localStorage に期限付きで持つ。
+期限は [frontend/src/config.ts](frontend/src/config.ts) の `SESSION_TTL_MS`(7 日)。アプリを開くたびにそこから 7 日へ切り直す。
+sessionStorage はタブを閉じると消えるため、アプリを開き直すたびに再ログインが要ることから移した。
 
 ### ページの URL
 
