@@ -14,7 +14,7 @@ export type Itinerary = {
 
 // 旅程(trip / days / items)の読み込みと、カードの CRUD。
 // 日付と旅のタイトルの保存は useTripSettings 側(features/TripSheet)で行う。
-export function useItinerary() {
+export function useItinerary(tripSlug: string) {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [days, setDays] = useState<Day[]>([]);
   const [items, setItems] = useState<Item[]>([]);
@@ -23,7 +23,7 @@ export function useItinerary() {
 
   const refreshAll = useCallback(async () => {
     try {
-      const [t, ds, is] = await Promise.all([tripApi.getTrip(), daysApi.listDays(), itemsApi.listItems()]);
+      const [t, ds, is] = await Promise.all([tripApi.getTrip(tripSlug), daysApi.listDays(tripSlug), itemsApi.listItems(tripSlug)]);
       setTrip(t);
       setDays(ds);
       setItems(is);
@@ -34,11 +34,11 @@ export function useItinerary() {
     } finally {
       setLoaded(true);
     }
-  }, []);
+  }, [tripSlug]);
 
   const refreshItems = useCallback(async () => {
-    setItems(await itemsApi.listItems());
-  }, []);
+    setItems(await itemsApi.listItems(tripSlug));
+  }, [tripSlug]);
 
   useEffect(() => {
     void refreshAll();
@@ -47,26 +47,26 @@ export function useItinerary() {
   // ---- items
   const createItem = useCallback(
     async (input: ItemInput & { dayId: string; title: string }) => {
-      await itemsApi.createItem(input);
+      await itemsApi.createItem(tripSlug, input);
       await refreshItems();
     },
-    [refreshItems],
+    [tripSlug, refreshItems],
   );
 
   const updateItem = useCallback(
     async (id: string, patch: ItemInput) => {
-      await itemsApi.patchItem(id, patch);
+      await itemsApi.patchItem(tripSlug, id, patch);
       await refreshItems();
     },
-    [refreshItems],
+    [tripSlug, refreshItems],
   );
 
   const removeItem = useCallback(
     async (id: string) => {
-      await itemsApi.deleteItem(id);
+      await itemsApi.deleteItem(tripSlug, id);
       await refreshItems();
     },
-    [refreshItems],
+    [tripSlug, refreshItems],
   );
 
   // 並べ替え確定。動いた 1 枚だけを PATCH し、他のカードの位置はサーバが振り直す(B6)。
@@ -75,12 +75,12 @@ export function useItinerary() {
     async (id: string, dayId: string, position: number, optimistic: Item[]) => {
       setItems(optimistic);
       try {
-        await itemsApi.patchItem(id, { dayId, position });
+        await itemsApi.patchItem(tripSlug, id, { dayId, position });
       } finally {
         await refreshItems();
       }
     },
-    [refreshItems],
+    [tripSlug, refreshItems],
   );
 
   const itinerary: Itinerary = useMemo(
@@ -90,6 +90,7 @@ export function useItinerary() {
 
   return {
     ...itinerary,
+    tripSlug,
     setTrip,
     setDays,
     refreshAll,

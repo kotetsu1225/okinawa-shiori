@@ -68,6 +68,32 @@ expect_status "PATCH /api/trip 101 chars (rune count)" 400
 req PATCH /api/trip '{"title":'
 expect_status "PATCH /api/trip broken JSON" 400
 
+# ---- trip scope ------------------------------------------------------------
+# ?trip=<slug> で旅行を選ぶ。省略時は okinawa。存在しない slug は 404(他の旅行に落ちない)。
+
+section "trip scope"
+req GET /api/trip
+expect_jq "no trip param falls back to okinawa" '.slug == "okinawa" and .theme == "okinawa"'
+req GET "/api/trip?trip=onsen"
+expect_status "GET /api/trip?trip=onsen" 200
+expect_jq "onsen slug and theme" '.slug == "onsen" and .theme == "onsen"'
+
+for path in /api/trip /api/days /api/items; do
+  req GET "$path?trip=unknown"
+  expect_status "GET $path unknown slug" 404
+done
+
+req POST "/api/days?trip=onsen" '{"date":"2099-12-31","title":"スコープ確認"}'
+expect_status "POST day into onsen" 201
+ONSEN_DAY=$(field '.id')
+
+req GET /api/days
+expect_jq "onsen day is absent from okinawa" "[.[] | select(.id == \"$ONSEN_DAY\")] | length == 0"
+req PATCH "/api/days/$ONSEN_DAY" '{"title":"他の旅行からは触れない"}'
+expect_status "PATCH onsen day without trip param" 404
+req DELETE "/api/days/$ONSEN_DAY?trip=onsen"
+expect_status "DELETE onsen day" 204
+
 # ---- days ------------------------------------------------------------------
 
 section "days"

@@ -53,7 +53,7 @@ export function TabBar(p: TabBarProps) {
             fontSize: 28,
             lineHeight: 1,
             cursor: 'pointer',
-            boxShadow: '0 8px 20px rgba(242,122,94,.4)',
+            boxShadow: `0 8px 20px ${color.accentShadow}`,
             display: 'grid',
             placeItems: 'center',
             paddingBottom: 3,

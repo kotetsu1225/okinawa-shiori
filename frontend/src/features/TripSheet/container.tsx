@@ -39,7 +39,7 @@ function messageOf(e: unknown): string {
 
 export function TripSheetContainer({ state: sh }: Props) {
   const { itinerary, sheet } = useAppContext();
-  const { trip, days, refreshAll } = itinerary;
+  const { trip, tripSlug, days, refreshAll } = itinerary;
   const { patchTripSheet, close } = sheet;
 
   const [busy, setBusy] = useState(false);
@@ -82,7 +82,7 @@ export function TripSheetContainer({ state: sh }: Props) {
       setPending(null);
       try {
         const title = sh.title.trim();
-        if (title !== trip.title) await tripApi.patchTrip({ title });
+        if (title !== trip.title) await tripApi.patchTrip(tripSlug, { title });
 
         const keep = new Set(sh.days.map((d) => d.id).filter((id): id is string => !!id));
         type Op = () => Promise<void>;
@@ -92,7 +92,7 @@ export function TripSheetContainer({ state: sh }: Props) {
           if (keep.has(d.id)) return;
           ops.push(async () => {
             try {
-              await daysApi.deleteDay(d.id, confirmedIds.has(d.id));
+              await daysApi.deleteDay(tripSlug, d.id, confirmedIds.has(d.id));
             } catch (e) {
               if (e instanceof ApiError && e.code === 'day_has_items') throw new NeedsConfirm(d.id, i + 1, d.date, e.itemCount ?? 0);
               if (e instanceof ApiError && e.code === 'not_found') return; // 確認後の再開で、もう消えている
@@ -110,12 +110,12 @@ export function TripSheetContainer({ state: sh }: Props) {
             if (Object.keys(patch).length) {
               const id = d.id;
               ops.push(async () => {
-                await daysApi.patchDay(id, patch);
+                await daysApi.patchDay(tripSlug, id, patch);
               });
             }
           } else {
             ops.push(async () => {
-              await daysApi.createDay({ date: d.date, title: d.title });
+              await daysApi.createDay(tripSlug, { date: d.date, title: d.title });
             });
           }
         }
@@ -152,7 +152,7 @@ export function TripSheetContainer({ state: sh }: Props) {
         setBusy(false);
       }
     },
-    [trip, days, sh, canSave, refreshAll, close],
+    [trip, tripSlug, days, sh, canSave, refreshAll, close],
   );
 
   const onSave = useCallback(() => void save(confirmed), [save, confirmed]);

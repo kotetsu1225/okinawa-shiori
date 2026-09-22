@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	migratemysql "github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
-	_ "github.com/go-sql-driver/mysql"
 
 	"okinawa-shiori/backend/migrations"
 )
@@ -17,7 +17,14 @@ import (
 // GORM とは別に専用の *sql.DB を開く。golang-migrate は Close() で渡された DB を閉じるため、
 // GORM のコネクションプールを共有すると起動直後にプールが閉じられてしまう。
 func Migrate(dsn string) (uint, error) {
-	sqlDB, err := sql.Open("mysql", dsn)
+	// Each embedded migration may contain several statements. Enable this only
+	// on the dedicated migration connection, never on the application's pool.
+	cfg, err := mysqldriver.ParseDSN(dsn)
+	if err != nil {
+		return 0, fmt.Errorf("parse migration DSN: %w", err)
+	}
+	cfg.MultiStatements = true
+	sqlDB, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		return 0, fmt.Errorf("open for migrate: %w", err)
 	}

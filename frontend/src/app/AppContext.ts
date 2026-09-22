@@ -10,7 +10,6 @@ export type Screen = 'overview' | 'day';
 export type AppContextValue = {
   itinerary: ItineraryStore;
   sheet: SheetStore;
-  session: { name: string; logout: () => void };
   nav: {
     screen: Screen;
     dayIdx: number;

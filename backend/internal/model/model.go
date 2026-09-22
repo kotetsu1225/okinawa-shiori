@@ -5,17 +5,20 @@ package model
 import "time"
 
 type Trip struct {
-	ID        uint8  `gorm:"column:id;primaryKey"`
+	ID        uint64 `gorm:"column:id;primaryKey;autoIncrement"`
 	Title     string `gorm:"column:title"`
+	Slug      string `gorm:"column:slug"`
+	Theme     string `gorm:"column:theme"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-// TableName は GORM の複数形化(Trip → trips)を抑止する。実テーブルは単一行の trip(D8)。
+// TableName preserves the original table name.
 func (Trip) TableName() string { return "trip" }
 
 type Day struct {
 	ID        string    `gorm:"column:id;primaryKey;type:char(26)"`
+	TripID    uint64    `gorm:"column:trip_id"`
 	Date      time.Time `gorm:"column:date;type:date"`
 	Title     string    `gorm:"column:title"`
 	CreatedAt time.Time

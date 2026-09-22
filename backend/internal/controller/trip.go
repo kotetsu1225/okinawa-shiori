@@ -17,6 +17,20 @@ func NewTripController(svc *service.TripService) *TripController {
 	return &TripController{svc: svc}
 }
 
+// SelectTrip validates the URL selection before every itinerary endpoint.
+// An unknown slug must never fall back to another trip's data.
+func (c *TripController) SelectTrip(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := domain.WithTripSlug(r.Context(), r.URL.Query().Get("trip"))
+		r = r.WithContext(ctx)
+		if _, err := c.svc.Get(ctx); err != nil {
+			httpx.WriteError(w, r, err)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (c *TripController) Get(w http.ResponseWriter, r *http.Request) {
 	t, err := c.svc.Get(r.Context())
 	if err != nil {

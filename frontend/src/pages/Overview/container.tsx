@@ -10,7 +10,7 @@ import { headerSortableId } from '../../lib/sortable';
 import { OverviewPage, type OverviewDayRow } from './presenter';
 
 export function OverviewContainer() {
-  const { itinerary, sheet, session, nav, headline, count } = useAppContext();
+  const { itinerary, sheet, nav, headline, count } = useAppContext();
   const { trip, days, items } = itinerary;
 
   // 登場アニメーションの遅延用の連番。プロトタイプと同じく、カード → その日の見出しの順に振る
@@ -54,10 +54,9 @@ export function OverviewContainer() {
           tripTitle={trip.title}
           countText={countText}
           countLabel={countLabel}
-          greeting={session.name ? `${session.name} · ログアウト` : ''}
+          theme={trip.theme}
           days={rows}
           onOpenTripSheet={() => sheet.openTrip(trip.title, days.map((d) => ({ id: d.id, date: d.date, title: d.title })))}
-          onLogout={session.logout}
         />
       </SortableContext>
     </DndContext>

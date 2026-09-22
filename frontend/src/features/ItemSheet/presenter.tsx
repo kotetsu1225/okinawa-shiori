@@ -46,7 +46,7 @@ export function ItemSheet(p: ItemSheetProps) {
           onChange={p.onDescription}
           placeholder="メモ・説明"
           rows={3}
-          style={{ borderRadius: 14, border: `1.5px solid ${color.lineInput}`, background: '#fff', padding: '12px 16px', outline: 'none', fontSize: 15, resize: 'none' }}
+          style={{ borderRadius: 14, border: `1.5px solid ${color.lineInput}`, background: color.surface, padding: '12px 16px', outline: 'none', fontSize: 15, resize: 'none' }}
         />
         <input value={p.url} onChange={p.onUrl} placeholder="リンク (https://...)" inputMode="url" style={sheetInputStyle} />
         <button onClick={p.onSave} style={saveButtonStyle(p.canSave)}>

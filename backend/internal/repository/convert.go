@@ -30,7 +30,7 @@ func emptyToNull(s string) *string {
 // ---- trip
 
 func tripToDomain(m *model.Trip) *domain.Trip {
-	return &domain.Trip{Title: m.Title}
+	return &domain.Trip{Title: m.Title, Slug: m.Slug, Theme: m.Theme}
 }
 
 // ---- day

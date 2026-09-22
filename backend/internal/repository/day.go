@@ -15,10 +15,10 @@ var _ domain.DayRepository = (*DayRepository)(nil)
 
 func NewDayRepository(db *gorm.DB) *DayRepository { return &DayRepository{db: db} }
 
-// List は date 昇順で返す(D3)。uq_days_date がそのまま効く。
+// List returns the selected trip's dates in order.
 func (r *DayRepository) List(ctx context.Context) ([]domain.Day, error) {
 	var ms []model.Day
-	if err := conn(ctx, r.db).Order("date").Find(&ms).Error; err != nil {
+	if err := selectedDays(ctx, r.db).Order("date").Find(&ms).Error; err != nil {
 		return nil, wrap(err)
 	}
 	return daysToDomain(ms), nil
@@ -26,7 +26,7 @@ func (r *DayRepository) List(ctx context.Context) ([]domain.Day, error) {
 
 func (r *DayRepository) FindByID(ctx context.Context, id string) (*domain.Day, error) {
 	var m model.Day
-	if err := conn(ctx, r.db).First(&m, "id = ?", id).Error; err != nil {
+	if err := selectedDays(ctx, r.db).First(&m, "id = ?", id).Error; err != nil {
 		return nil, wrap(err)
 	}
 	d := dayToDomain(&m)
@@ -35,7 +35,7 @@ func (r *DayRepository) FindByID(ctx context.Context, id string) (*domain.Day, e
 
 func (r *DayRepository) Count(ctx context.Context) (int64, error) {
 	var n int64
-	err := conn(ctx, r.db).Model(&model.Day{}).Count(&n).Error
+	err := selectedDays(ctx, r.db).Count(&n).Error
 	return n, wrap(err)
 }
 
@@ -44,7 +44,7 @@ func (r *DayRepository) ExistsByDate(ctx context.Context, date string, excludeID
 	if err != nil {
 		return false, err
 	}
-	q := conn(ctx, r.db).Model(&model.Day{}).Where("date = ?", t)
+	q := selectedDays(ctx, r.db).Where("date = ?", t)
 	if excludeID != "" {
 		q = q.Where("id <> ?", excludeID)
 	}
@@ -58,6 +58,11 @@ func (r *DayRepository) Create(ctx context.Context, d *domain.Day) error {
 	if err != nil {
 		return err
 	}
+	var trip model.Trip
+	if err := conn(ctx, r.db).First(&trip, "slug = ?", domain.TripSlug(ctx)).Error; err != nil {
+		return wrap(err)
+	}
+	m.TripID = trip.ID
 	return wrap(conn(ctx, r.db).Create(m).Error)
 }
 
@@ -66,9 +71,9 @@ func (r *DayRepository) Save(ctx context.Context, d *domain.Day) error {
 	if err != nil {
 		return err
 	}
-	return wrap(conn(ctx, r.db).Model(m).Select("date", "title").Updates(m).Error)
+	return wrap(selectedDays(ctx, r.db).Where("id = ?", m.ID).Select("date", "title").Updates(m).Error)
 }
 
 func (r *DayRepository) Delete(ctx context.Context, id string) error {
-	return wrap(conn(ctx, r.db).Delete(&model.Day{}, "id = ?", id).Error)
+	return wrap(selectedDays(ctx, r.db).Delete(&model.Day{}, "id = ?", id).Error)
 }

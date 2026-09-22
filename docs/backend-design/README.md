@@ -6,6 +6,11 @@
 - 実装: [../../backend/](../../backend/)
 - E2E: [../../backend/scripts/smoke.sh](../../backend/scripts/smoke.sh)
 
+> **改訂（2026-09-23）** — 複数旅行に対応。`/api/health` 以外の API は
+> `?trip=<slug>` で旅行を選択する（省略時は `okinawa`）。存在しない旅行は 404。
+> 日付・予定の読み書き、日付の重複判定、最後の1日の削除制限は旅行ごとに閉じる。
+> 書き込み時は対象旅行の行をロックする。フロントのログイン画面も廃止した。
+
 ---
 
 ## 全体像
@@ -91,11 +96,14 @@ err := s.tx.Transaction(ctx, func(ctx context.Context) error {
 
 ベースパス `/api`。認証なし(B10)。本文は JSON。
 
+例: `GET /api/days?trip=onsen`、`DELETE /api/days/{id}?trip=onsen&withItems=true`。
+`trip` のレスポンスは `{title,slug,theme}`。`theme` は `okinawa` または `onsen`。
+
 | Method | Path | Body | 成功 | 失敗 |
 |---|---|---|---|---|
 | `GET` | `/api/health` | — | 200 `{"ok":true}` | |
-| `GET` | `/api/trip` | — | 200 `{title}` | |
-| `PATCH` | `/api/trip` | `{title?}` | 200 `{title}` | 400 |
+| `GET` | `/api/trip` | — | 200 `{title,slug,theme}` | 404 |
+| `PATCH` | `/api/trip` | `{title?}` | 200 `{title,slug,theme}` | 400 / 404 |
 | `GET` | `/api/days` | — | 200 `[{id,date,title}]` date 昇順 | |
 | `POST` | `/api/days` | `{date,title?}` | 201 `{id,date,title}` | 400 / 409 `date_conflict` |
 | `PATCH` | `/api/days/{id}` | `{date?,title?}` | 200 | 400 / 404 / 409 `date_conflict` |
@@ -250,11 +258,11 @@ FK が `ON DELETE RESTRICT` で InnoDB は即時評価するため、`items` を
 ### B10. 認証を持たない
 
 **決定** — バックエンドに認証・セッションは無い。`sessions` テーブルと middleware は作らない。
-「ふたりの記念日」による入口の演出はフロントだけで行う。
+フロントにもログイン画面を設けず、URL から直接旅程を開く。
 
 **理由** — しおりに秘密の情報は無く、URL を知っているふたりだけが使う。公開でよい、という判断。
 
-**承知しておくこと** — API は URL を知っていれば誰でも読み書きできる。記念日の値も JS バンドルに含まれる。
+**承知しておくこと** — API は URL を知っていれば誰でも読み書きできる。
 後から最低限だけ塞ぐなら、**アプリのコードを変えずに**リバースプロキシで Basic 認証を足すのが最も安上がり。
 当初案(D14: ランダムトークンの SHA-256 のみ DB に置く、合言葉は環境変数)は、その次の段階の出発点。
 

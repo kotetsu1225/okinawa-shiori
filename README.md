@@ -1,4 +1,13 @@
-# 沖縄のしおり (ふたり用 旅程アプリ)
+# 旅のしおり（沖縄・温泉）
+
+ログイン不要の旅程アプリ。旅行は DB に保存し、URL の `trip` パラメータで切り替える。
+
+- 沖縄: `/` または `/?trip=okinawa`
+- 温泉: `/?trip=onsen`
+- 各日の直接リンク: `/days/:id?trip=onsen`
+
+予定の追加・編集・削除・並べ替えと「旅の設定」は、選択した旅行だけに反映される。
+温泉旅行は生成り・深緑のテーマで表示する。存在しない旅行にはエラーを表示する。
 
 ## 構成
 
@@ -27,6 +36,30 @@ make smoke     # curl + jq の E2E。全エンドポイントを叩いて assert
 
 API は `http://localhost:8088/api/...`。ポートは `.env` の `API_PORT` で変えられる。
 
+移行と旅行ごとの分離を確かめる Go のテストは、使い捨ての MySQL を指して実行する。
+DSN を渡さないと skip する。テストごとにデータベースを作って消すため、`CREATE`/`DROP DATABASE` の権限が要る。
+
+```sh
+SHIORI_TEST_MYSQL_DSN='root:root@tcp(127.0.0.1:3306)/?parseTime=true' go test ./internal/integration/
+```
+
+### DB 移行と初期データ
+
+起動時に `000004_multiple_trips` を適用し、既存の沖縄データを `slug=okinawa` に紐付ける。
+`trip` は複数行を持ち、`days.trip_id` で旅行を区別する。同じ日付は異なる旅行に登録できる。
+
+初回起動時に `slug=onsen`・タイトル「温泉のしおり」・温泉テーマを登録し、
+2026-09-23 と 2026-09-24 の2日分を用意する。行き先・予定は未指定のため空欄。
+seed は既存の旅行を上書きせず、再起動で編集内容や削除した日程を戻さない。
+
+別の旅行を追加する場合は [onsen.json](backend/internal/database/seeds/onsen.json) をコピーし、
+一意の `slug`、`title`、`theme` と最低1日分の `days` を指定する。
+`backend/` で `go run ./cmd/seed -file path/to/trip.json` を実行すると、DB にまとめて登録する。
+同じ slug があれば変更しない。表示は `/?trip=<slug>`。
+`theme` は `okinawa` または `onsen` を選ぶ。
+
+API にも同じ `?trip=<slug>` を付ける（例: `/api/items?trip=onsen`）。省略時は沖縄。
+
 ## frontend/ の動かし方
 
 backend が `:8088` で動いている前提(上記 `make up`)。開発サーバは `/api` を backend にプロキシする。
@@ -39,21 +72,18 @@ pnpm typecheck  # tsc --noEmit
 pnpm build      # dist/ に静的ファイルを出力。API のオリジンは VITE_API_BASE で指定(.env.example)
 ```
 
-ログイン画面の「記念日」は [frontend/src/config.ts](frontend/src/config.ts) の `ANNIVERSARY`(`2026-06-24`)。
-判定はフロントだけで行い、backend に認証は無い(B10)。セッションは localStorage に期限付きで持つ。
-期限は [frontend/src/config.ts](frontend/src/config.ts) の `SESSION_TTL_MS`(7 日)。アプリを開くたびにそこから 7 日へ切り直す。
-sessionStorage はタブを閉じると消えるため、アプリを開き直すたびに再ログインが要ることから移した。
+フロント・バックエンドともに認証なし。URL を開くとそのまま閲覧・編集できる。
 
 ### ページの URL
 
-- `/login` — ログイン
+- `/login` — 旧リンク用。旅程へリダイレクト
 - `/` — 旅程一覧
 - `/days/:id` — 日付ごとの旅程。`:id` は API が返す `Day.id`（ULID）
 
-日付の URL を未ログインで開くと `/login?next=...` に移り、ログイン後に元の日付へ戻る。
+URL の `?trip=...` は一覧・日程の移動でも保持する。
 ブラウザの戻る・進む、再読み込みに対応。存在しない・削除済みの日付には一覧へ戻る案内を表示する。
 Vercel の直接アクセス用 rewrite は `frontend/vercel.json` に定義する。
-ルート解析のテストは Node.js 22.18 以降で `node --test frontend/tests/routes.test.mjs`。
+ルート解析と旅行スコープのテストは Node.js 22.18 以降で `pnpm test`。
 
 ### 構成(container / presentational)
 
@@ -65,16 +95,24 @@ Vercel の直接アクセス用 rewrite は `frontend/vercel.json` に定義す�
 frontend/src/
 ├── App.tsx                 # ルートの container。画面切替と、ページをまたぐ状態(旅程・シート・ドラッグ)を束ねる
 ├── app/AppContext.ts       # 上記の状態を各ページの container に配る Context
-├── pages/                  # 画面。Login / Overview(一覧) / Day(日程)
+├── pages/                  # 画面。Overview(一覧) / Day(日程)
 │   └── <Page>/{container,presenter,index}.tsx
 ├── features/               # 画面をまたいで使う機能。ItemSheet(予定の追加・編集) / TripSheet(旅の設定)
-├── components/             # 共通部品。ItemCard / DayHeader は presenter(見た目)+ container(useSortable を噛ませる)、TabBar / SheetShell / decor(太陽・花・波)
-├── hooks/                  # ロジック。useItinerary(旅程の読み書き) / useItemSorting(dnd-kit の設定と並べ替え確定) / useSheet / useSession / useCountUp
-├── api/                    # fetch の薄いラッパー。backend の API と 1:1(client / trip / days / items / session)
+├── components/             # 共通部品。ItemCard / DayHeader は presenter(見た目)+ container(useSortable を噛ませる)、TabBar / SheetShell / decor(太陽・花・波・温泉)
+├── hooks/                  # ロジック。useItinerary(旅程の読み書き) / useItemSorting(dnd-kit の設定と並べ替え確定) / useSheet / useCountUp
+├── api/                    # fetch の薄いラッパー。backend の API と 1:1(client / trip / days / items)
 ├── types/domain.ts         # backend の domain と 1:1 の型
-├── lib/                    # date / url / theme(色・フォント・共通スタイル)
-└── config.ts               # ANNIVERSARY / API_BASE
+├── lib/                    # date / url / routes(ページと ?trip= の解析) / theme(色・フォント・共通スタイル)
+└── config.ts               # API_BASE
 ```
+
+### テーマ(旅行ごとの配色)
+
+`GET /api/trip` が返す `theme` を `<html data-theme="...">` に載せ、CSS 変数で配色を切り替える。
+変数の定義は [global.css](frontend/src/styles/global.css)、参照側は [lib/theme.ts](frontend/src/lib/theme.ts)。
+`color.*` は `var(--color-…, 沖縄の値)` を返すため、既定(沖縄)は変数が無くても元の配色になる。
+一覧の背景絵は theme で出し分ける(沖縄は太陽・花・波、温泉は [Onsen.tsx](frontend/src/components/decor/Onsen.tsx) の湯けむり)。
+旅行を切り替えたときは `App.tsx` が `key={trip}` でツリーを作り直し、前の旅行の状態と通信結果を持ち込まない。
 
 ### 並べ替え(dnd-kit)
 

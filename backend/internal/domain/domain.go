@@ -17,6 +17,8 @@ func ParseDate(s string) (time.Time, error) {
 
 type Trip struct {
 	Title string `json:"title"`
+	Slug  string `json:"slug"`
+	Theme string `json:"theme"`
 }
 
 type Day struct {
@@ -29,7 +31,7 @@ type Item struct {
 	ID          string `json:"id"`
 	DayID       string `json:"dayId"`
 	Position    int    `json:"position"`
-	StartTime   string `json:"startTime"`   // "" = 時間未定
+	StartTime   string `json:"startTime"` // "" = 時間未定
 	Title       string `json:"title"`
 	Description string `json:"description"` // "" = 未記入
 	URL         string `json:"url"`         // "" = 未設定

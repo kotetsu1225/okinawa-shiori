@@ -36,21 +36,24 @@ func New(c Controllers, corsOrigin string) http.Handler {
 			httpx.WriteJSON(w, http.StatusOK, map[string]bool{"ok": true})
 		})
 
-		r.Get("/trip", c.Trip.Get)
-		r.Patch("/trip", c.Trip.Patch)
+		r.Group(func(r chi.Router) {
+			r.Use(c.Trip.SelectTrip)
+			r.Get("/trip", c.Trip.Get)
+			r.Patch("/trip", c.Trip.Patch)
 
-		r.Route("/days", func(r chi.Router) {
-			r.Get("/", c.Day.List)
-			r.Post("/", c.Day.Create)
-			r.Patch("/{id}", c.Day.Patch)
-			r.Delete("/{id}", c.Day.Delete)
-		})
+			r.Route("/days", func(r chi.Router) {
+				r.Get("/", c.Day.List)
+				r.Post("/", c.Day.Create)
+				r.Patch("/{id}", c.Day.Patch)
+				r.Delete("/{id}", c.Day.Delete)
+			})
 
-		r.Route("/items", func(r chi.Router) {
-			r.Get("/", c.Item.List)
-			r.Post("/", c.Item.Create)
-			r.Patch("/{id}", c.Item.Patch)
-			r.Delete("/{id}", c.Item.Delete)
+			r.Route("/items", func(r chi.Router) {
+				r.Get("/", c.Item.List)
+				r.Post("/", c.Item.Create)
+				r.Patch("/{id}", c.Item.Patch)
+				r.Delete("/{id}", c.Item.Delete)
+			})
 		})
 	})
 	return r

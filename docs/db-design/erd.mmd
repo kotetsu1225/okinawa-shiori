@@ -5,15 +5,14 @@
 
 flowchart TB
 
-    trip["<b>trip</b> 旅（単一行）<br>――――――――――――――<br>PK id : TINYINT UNSIGNED（常に 1）<br>title : VARCHAR(100)<br>created_at : DATETIME(3)<br>updated_at : DATETIME(3)"]
+    trip["<b>trip</b> 旅<br>――――――――――――――<br>PK id : BIGINT UNSIGNED AUTO_INCREMENT<br>UK slug : VARCHAR(64)<br>title : VARCHAR(100)<br>theme : VARCHAR(16)<br>created_at : DATETIME(3)<br>updated_at : DATETIME(3)"]
 
-    days["<b>days</b> 日付<br>――――――――――――――<br>PK id : CHAR(26)<br>UK date : DATE<br>title : VARCHAR(100)<br>created_at : DATETIME(3)<br>updated_at : DATETIME(3)"]
+    days["<b>days</b> 日付<br>――――――――――――――<br>PK id : CHAR(26)<br>FK trip_id : BIGINT UNSIGNED<br>date : DATE<br>UK (trip_id, date)<br>title : VARCHAR(100)<br>created_at : DATETIME(3)<br>updated_at : DATETIME(3)"]
 
     items["<b>items</b> 予定カード<br>――――――――――――――<br>PK id : CHAR(26)<br>FK day_id : CHAR(26)<br>position : INT UNSIGNED<br>start_time : CHAR(5) NULL<br>title : VARCHAR(200)<br>description : TEXT NULL<br>url : VARCHAR(1024) NULL<br>done : TINYINT(1)<br>created_at : DATETIME(3)<br>updated_at : DATETIME(3)"]
 
+    trip ---|"1 対 多<br>ON DELETE RESTRICT"| days
     days ---|"1 対 多（0件以上）<br>ON DELETE RESTRICT"| items
 
     classDef tbl fill:#ffffff,stroke:#5A7280,stroke-width:1px,color:#1B2A33,text-align:left
-    classDef iso fill:#f4f6f8,stroke:#9AB0BC,stroke-width:1px,stroke-dasharray:4 3,color:#5A7280,text-align:left
-    class days,items tbl
-    class trip iso
+    class trip,days,items tbl

@@ -6,6 +6,10 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
+
+	"okinawa-shiori/backend/internal/domain"
+	"okinawa-shiori/backend/internal/model"
 )
 
 // txKey は context に載せるトランザクションのキー。
@@ -27,6 +31,13 @@ func NewTransactor(db *gorm.DB) *Transactor { return &Transactor{db: db} }
 func (t *Transactor) Transaction(ctx context.Context, fn func(ctx context.Context) error) error {
 	// 既にトランザクションの中なら、その tx で Transaction を呼ぶ → GORM が SavePoint にする(入れ子)
 	return conn(ctx, t.db).Transaction(func(tx *gorm.DB) error {
+		// Serialize writes within this trip so last-day checks, moves and position
+		// renumbering remain valid even when two people edit at the same time.
+		var trip model.Trip
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&trip, "slug = ?", domain.TripSlug(ctx)).Error; err != nil {
+			return wrap(err)
+		}
 		return fn(context.WithValue(ctx, txKey{}, tx))
 	})
 }

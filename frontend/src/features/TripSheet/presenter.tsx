@@ -41,7 +41,7 @@ const rowInputStyle: CSSProperties = {
   height: 46,
   borderRadius: 14,
   border: `1.5px solid ${color.lineInput}`,
-  background: '#fff',
+  background: color.surface,
   padding: '0 14px',
   outline: 'none',
   fontSize: 15,
@@ -65,7 +65,7 @@ export function TripSheet(p: TripSheetProps) {
               onChange={f.onDate}
               style={{ ...rowInputStyle, padding: '0 10px', color: color.ink, WebkitAppearance: 'none', appearance: 'none' }}
             />
-            <input value={f.title} onChange={f.onTitle} placeholder="例: 那覇" style={rowInputStyle} />
+            <input value={f.title} onChange={f.onTitle} placeholder="この日のテーマ" style={rowInputStyle} />
             <button
               onClick={f.onRemove}
               style={{

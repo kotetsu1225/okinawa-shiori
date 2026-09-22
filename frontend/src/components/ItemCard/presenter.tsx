@@ -49,7 +49,7 @@ export function ItemCard(p: ItemCardProps) {
     height: 40,
     borderRadius: '50%',
     border: p.done ? '0' : `2px dashed ${color.lineDash}`,
-    background: p.done ? color.green : '#fff',
+    background: p.done ? color.green : color.surface,
     color: '#fff',
     fontSize: 16,
     fontWeight: 700,
@@ -68,7 +68,7 @@ export function ItemCard(p: ItemCardProps) {
   return (
     <div data-row="card" data-id={p.id} style={{ marginBottom: 10 }}>
       <div ref={p.wrapRef} style={p.wrapStyle}>
-        <div style={{ background: '#fff', borderRadius: 22, border: `1.5px solid ${color.line}`, overflow: 'hidden', boxShadow: `0 2px 0 ${color.line}` }}>
+        <div style={{ background: color.surface, borderRadius: 22, border: `1.5px solid ${color.line}`, overflow: 'hidden', boxShadow: `0 2px 0 ${color.line}` }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'auto minmax(0,1fr) auto', alignItems: 'center', gap: 6, padding: '12px 4px 12px 12px' }}>
             <button onClick={p.onToggle} aria-label="完了" style={checkStyle}>
               ✓
@@ -85,15 +85,15 @@ export function ItemCard(p: ItemCardProps) {
               aria-label="並べ替え"
               style={{ touchAction: 'none', cursor: 'grab', padding: '14px 14px', display: 'flex', flexDirection: 'column', gap: 4, userSelect: 'none', outline: 'none' }}
             >
-              <div style={{ width: 18, height: 2, borderRadius: 2, background: '#C3D5DE' }} />
-              <div style={{ width: 18, height: 2, borderRadius: 2, background: '#C3D5DE' }} />
-              <div style={{ width: 18, height: 2, borderRadius: 2, background: '#C3D5DE' }} />
+              <div style={{ width: 18, height: 2, borderRadius: 2, background: color.handle }} />
+              <div style={{ width: 18, height: 2, borderRadius: 2, background: color.handle }} />
+              <div style={{ width: 18, height: 2, borderRadius: 2, background: color.handle }} />
             </div>
           </div>
           <div style={expStyle}>
             <div style={{ minHeight: 0, overflow: 'hidden' }}>
               <div style={{ padding: '0 16px 14px 56px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {p.description && <p style={{ margin: 0, color: '#4A6270', fontSize: 14, whiteSpace: 'pre-wrap' }}>{p.description}</p>}
+                {p.description && <p style={{ margin: 0, color: color.description, fontSize: 14, whiteSpace: 'pre-wrap' }}>{p.description}</p>}
                 {p.url && (
                   <a
                     href={p.url}
@@ -121,7 +121,7 @@ export function ItemCard(p: ItemCardProps) {
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 2 }}>
                   <button
                     onClick={p.onEdit}
-                    style={{ ...smallButton, border: `1.5px solid ${color.lineInput}`, background: '#fff', fontWeight: 700, color: color.ink }}
+                    style={{ ...smallButton, border: `1.5px solid ${color.lineInput}`, background: color.surface, fontWeight: 700, color: color.ink }}
                   >
                     編集
                   </button>

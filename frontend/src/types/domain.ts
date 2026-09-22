@@ -3,6 +3,8 @@
 
 export type Trip = {
   title: string;
+  slug: string;
+  theme: 'okinawa' | 'onsen';
 };
 
 export type Day = {
@@ -28,10 +30,6 @@ export type DayInput = Partial<Pick<Day, 'date' | 'title'>>;
 export type ItemInput = Partial<
   Pick<Item, 'dayId' | 'position' | 'startTime' | 'title' | 'description' | 'url' | 'done'>
 >;
-
-export type Session = {
-  name: string;
-};
 
 // エラー応答 {"error":{"code","message",...}}(B7)
 export type ApiErrorCode =

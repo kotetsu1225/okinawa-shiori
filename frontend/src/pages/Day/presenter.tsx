@@ -20,7 +20,7 @@ export type DayPageProps = {
 export function DayPage(p: DayPageProps) {
   return (
     <div style={{ paddingBottom: 120 }}>
-      <div style={{ position: 'sticky', top: 0, zIndex: 5, background: 'rgba(246,250,252,.92)', backdropFilter: 'blur(10px)', padding: '14px 0 10px' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 5, background: color.stickyPaper, backdropFilter: 'blur(10px)', padding: '14px 0 10px' }}>
         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 16px', scrollbarWidth: 'none' }}>
           {p.pills.map((d) => (
             <button key={d.n} onClick={d.onSelect} style={pillStyle(d.active)}>

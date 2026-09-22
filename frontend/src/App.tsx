@@ -6,40 +6,39 @@ import { TripSheetContainer } from './features/TripSheet';
 import { useCountUp } from './hooks/useCountUp';
 import { useItinerary } from './hooks/useItinerary';
 import { useNow } from './hooks/useNow';
-import { useSession } from './hooks/useSession';
 import { useSheet } from './hooks/useSheet';
 import { usePageRoute } from './hooks/usePageRoute';
-import { dayPath, loginDestination } from './lib/routes';
+import { dayPath, loginDestination, overviewPath, tripFromSearch } from './lib/routes';
 import { computeHeadline, headlineTarget } from './lib/headline';
 import { color, font } from './lib/theme';
 import { DayContainer } from './pages/Day';
-import { LoginContainer } from './pages/Login';
 import { OverviewContainer } from './pages/Overview';
 
-// ルートの container。画面の切替と、ページをまたいで共有する状態(旅程・シート・展開中のカード)を束ねる。
 export function App() {
-  const { session, enter, commit, logout } = useSession();
-  const itinerary = useItinerary();
-  const sheet = useSheet();
-  const { days, items, loaded, loadError } = itinerary;
+  const pageRoute = usePageRoute();
+  const tripSlug = tripFromSearch(pageRoute.search);
+  // A different trip gets fresh data, sheets, and callbacks. Requests already
+  // in flight retain their original scope and cannot update this new workspace.
+  return <TripWorkspace key={tripSlug} tripSlug={tripSlug} pageRoute={pageRoute} />;
+}
 
-  const { route, pathname, search, navigate } = usePageRoute();
+type WorkspaceProps = { tripSlug: string; pageRoute: ReturnType<typeof usePageRoute> };
+
+function TripWorkspace({ tripSlug, pageRoute }: WorkspaceProps) {
+  const itinerary = useItinerary(tripSlug);
+  const sheet = useSheet();
+  const { trip, days, items, loaded, loadError } = itinerary;
+  const { route, pathname, search, navigate } = pageRoute;
   const screen = route.page === 'day' ? 'day' : 'overview';
   const routeDayId = route.page === 'day' ? route.dayId : null;
   const dayIdx = days.findIndex((day) => day.id === routeDayId);
   const [lastDayId, setLastDayId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [lastName, setLastName] = useState(session?.name ?? '');
 
   useEffect(() => {
-    if (!session && route.page !== 'login') {
-      const next = route.page === 'day' ? `?next=${encodeURIComponent(dayPath(route.dayId))}` : '';
-      navigate(`/login${next}`, true);
-    } else if (session && route.page === 'login') {
-      navigate(loginDestination(search), true);
-    }
-  }, [session, route.page, routeDayId, search, navigate]);
+    if (route.page === 'login') navigate(loginDestination(search), true);
+  }, [route.page, search, navigate]);
 
   useEffect(() => {
     if (routeDayId && dayIdx >= 0) setLastDayId(routeDayId);
@@ -52,72 +51,61 @@ export function App() {
     window.scrollTo(0, 0);
   }, [pathname, sheet.close]);
 
-  // ---- 一覧上部の見出し。出発前は出発までの日数、旅の最中は次の予定までのカウントダウン。30 秒ごとに再計算
+  const theme = trip?.theme ?? (tripSlug === 'onsen' ? 'onsen' : 'okinawa');
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.title = trip?.title ?? '旅のしおり';
+    return () => { delete document.documentElement.dataset.theme; };
+  }, [theme, trip?.title]);
+
   const now = useNow(30000);
   const headline = useMemo(() => computeHeadline(days, items, now), [days, items, now]);
-  const count = useCountUp(headlineTarget(headline), !!session && loaded);
+  const count = useCountUp(headlineTarget(headline), loaded);
 
-  // ---- 画面遷移
-  const goOverview = useCallback(() => navigate('/'), [navigate]);
+  const goOverview = useCallback(() => navigate(overviewPath(tripSlug)), [navigate, tripSlug]);
   const goDay = useCallback(() => {
     const day = days.find((d) => d.id === lastDayId) ?? days[0];
-    if (day) navigate(dayPath(day.id));
-  }, [days, lastDayId, navigate]);
+    if (day) navigate(dayPath(day.id, tripSlug));
+  }, [days, lastDayId, navigate, tripSlug]);
   const openDay = useCallback((i: number) => {
     const day = days[i];
-    if (day) navigate(dayPath(day.id));
-  }, [days, navigate]);
-  const selectDay = openDay;
-
-  const doLogout = useCallback(() => {
-    logout();
-    sheet.close();
-    navigate('/login', true);
-  }, [logout, sheet.close, navigate]);
-
-  const onEntered = useCallback(() => {
-    commit();
-    navigate(loginDestination(search), true);
-  }, [commit, search, navigate]);
-
-  useEffect(() => {
-    if (session) setLastName(session.name);
-  }, [session]);
+    if (day) navigate(dayPath(day.id, tripSlug));
+  }, [days, navigate, tripSlug]);
 
   const ctx: AppContextValue = useMemo(
     () => ({
       itinerary,
       sheet,
-      session: { name: session?.name ?? '', logout: doLogout },
-      nav: { screen, dayIdx, goOverview, goDay, openDay, selectDay },
+      nav: { screen, dayIdx, goOverview, goDay, openDay, selectDay: openDay },
       ui: { expandedId, confirmId, setExpandedId, setConfirmId },
       headline,
       count,
     }),
-    [itinerary, sheet, session, doLogout, screen, dayIdx, goOverview, goDay, openDay, selectDay, expandedId, confirmId, headline, count],
+    [itinerary, sheet, screen, dayIdx, goOverview, goDay, openDay, expandedId, confirmId, headline, count],
   );
 
   const curDayId = screen === 'day' ? days[dayIdx]?.id : undefined;
-  const isApp = !!session && !!itinerary.trip && route.page !== 'login';
+  const isApp = !!trip && !loadError && route.page !== 'login';
   const missingPage = route.page === 'not-found' || (route.page === 'day' && loaded && !loadError && dayIdx < 0);
 
   return (
     <AppContext.Provider value={ctx}>
-      <div style={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', fontFamily: font.body, color: color.ink, fontSize: 15, lineHeight: 1.5 }}>
+      <div data-theme={theme} style={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', fontFamily: font.body, color: color.ink, fontSize: 15, lineHeight: 1.5 }}>
         <div style={{ width: '100%', maxWidth: 430, minHeight: '100dvh', background: color.paper, position: 'relative', overflowX: 'clip' }}>
-          {!session && <LoginContainer initialName={lastName} login={enter} onEntered={onEntered} />}
+          {!loaded && <div role="status" style={{ padding: '80px 28px', color: color.sub }}>旅のしおりを開いています…</div>}
 
-          {session && loadError && (
-            <div style={{ padding: '80px 28px', color: color.red, fontSize: 13 }}>
-              しおりを読み込めませんでした。バックエンドが起動しているか確認してね。
+          {loadError && (
+            <div role="alert" style={{ padding: '80px 28px', color: color.red, fontSize: 13 }}>
+              しおりを読み込めませんでした。URL と通信状況を確認してください。
               <div style={{ marginTop: 8, color: color.muted }}>{loadError}</div>
+              <button onClick={() => void itinerary.refreshAll()} style={{ marginTop: 16, color: color.sea, cursor: 'pointer' }}>もう一度読み込む</button>
             </div>
           )}
 
           {isApp && !missingPage && screen === 'overview' && <OverviewContainer />}
           {isApp && !missingPage && screen === 'day' && <DayContainer />}
 
-          {session && missingPage && (
+          {loaded && !loadError && missingPage && (
             <div style={{ padding: '80px 28px' }}>
               <p>このページは見つかりませんでした。日程が削除された可能性があります。</p>
               <button onClick={goOverview} style={{ color: color.sea, cursor: 'pointer' }}>一覧に戻る</button>
@@ -136,8 +124,8 @@ export function App() {
             />
           )}
 
-          {session && sheet.sheet && sheet.sheet.mode !== 'trip' && <ItemSheetContainer state={sheet.sheet} />}
-          {session && sheet.sheet && sheet.sheet.mode === 'trip' && <TripSheetContainer state={sheet.sheet} />}
+          {sheet.sheet && sheet.sheet.mode !== 'trip' && <ItemSheetContainer state={sheet.sheet} />}
+          {sheet.sheet && sheet.sheet.mode === 'trip' && <TripSheetContainer state={sheet.sheet} />}
         </div>
       </div>
     </AppContext.Provider>

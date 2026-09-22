@@ -22,8 +22,7 @@ var itemColumns = []string{"day_id", "position", "start_time", "title", "descrip
 // List は全カードを表示順(日付 → position)で返す。設計書の想定クエリ 3 本目。
 func (r *ItemRepository) List(ctx context.Context) ([]domain.Item, error) {
 	var ms []model.Item
-	err := conn(ctx, r.db).
-		Model(&model.Item{}).
+	err := selectedItems(ctx, r.db).
 		Select("items.*").
 		Joins("JOIN days ON days.id = items.day_id").
 		Order("days.date, items.position").
@@ -36,7 +35,7 @@ func (r *ItemRepository) List(ctx context.Context) ([]domain.Item, error) {
 
 func (r *ItemRepository) FindByID(ctx context.Context, id string) (*domain.Item, error) {
 	var m model.Item
-	if err := conn(ctx, r.db).First(&m, "id = ?", id).Error; err != nil {
+	if err := selectedItems(ctx, r.db).First(&m, "id = ?", id).Error; err != nil {
 		return nil, wrap(err)
 	}
 	it := itemToDomain(&m)
@@ -45,32 +44,38 @@ func (r *ItemRepository) FindByID(ctx context.Context, id string) (*domain.Item,
 
 func (r *ItemRepository) CountByDay(ctx context.Context, dayID string) (int64, error) {
 	var n int64
-	err := conn(ctx, r.db).Model(&model.Item{}).Where("day_id = ?", dayID).Count(&n).Error
+	err := selectedItems(ctx, r.db).Where("day_id = ?", dayID).Count(&n).Error
 	return n, wrap(err)
 }
 
 func (r *ItemRepository) Create(ctx context.Context, it *domain.Item) error {
+	if _, err := NewDayRepository(r.db).FindByID(ctx, it.DayID); err != nil {
+		return err
+	}
 	return wrap(conn(ctx, r.db).Create(itemToModel(it)).Error)
 }
 
 // Save は列を明示して全項目を書く。GORM の Updates(struct) はゼロ値(done=false, position=0)を
 // 書かないため、Select で列を指定する(B3)。
 func (r *ItemRepository) Save(ctx context.Context, it *domain.Item) error {
+	if _, err := NewDayRepository(r.db).FindByID(ctx, it.DayID); err != nil {
+		return err
+	}
 	m := itemToModel(it)
-	return wrap(conn(ctx, r.db).Model(m).Select(itemColumns).Updates(m).Error)
+	return wrap(selectedItems(ctx, r.db).Where("id = ?", m.ID).Select(itemColumns).Updates(m).Error)
 }
 
 func (r *ItemRepository) Delete(ctx context.Context, id string) error {
-	return wrap(conn(ctx, r.db).Delete(&model.Item{}, "id = ?", id).Error)
+	return wrap(selectedItems(ctx, r.db).Delete(&model.Item{}, "id = ?", id).Error)
 }
 
 func (r *ItemRepository) DeleteByDay(ctx context.Context, dayID string) error {
-	return wrap(conn(ctx, r.db).Delete(&model.Item{}, "day_id = ?", dayID).Error)
+	return wrap(selectedItems(ctx, r.db).Delete(&model.Item{}, "day_id = ?", dayID).Error)
 }
 
 // orderedIDs は dayID のカード ID を表示順で返す。excludeID を除外できる。
 func (r *ItemRepository) orderedIDs(ctx context.Context, dayID, excludeID string) ([]string, error) {
-	q := conn(ctx, r.db).Model(&model.Item{}).Where("day_id = ?", dayID)
+	q := selectedItems(ctx, r.db).Where("day_id = ?", dayID)
 	if excludeID != "" {
 		q = q.Where("id <> ?", excludeID)
 	}
@@ -84,8 +89,7 @@ func (r *ItemRepository) orderedIDs(ctx context.Context, dayID, excludeID string
 // 1 日あたり十数枚なので素朴なループで足りる。
 func (r *ItemRepository) writePositions(ctx context.Context, ids []string) error {
 	for i, id := range ids {
-		if err := conn(ctx, r.db).
-			Model(&model.Item{}).
+		if err := selectedItems(ctx, r.db).
 			Where("id = ?", id).
 			Update("position", i).Error; err != nil {
 			return wrap(err)
